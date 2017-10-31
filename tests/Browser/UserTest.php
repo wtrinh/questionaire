@@ -16,11 +16,30 @@ class UserTest extends DuskTestCase
      *
      * @return void
      */
-    public function testHomePage()
+    // public function testHomePage()
+    // {
+    //     $this->browse(function (Browser $browser) {
+    //         $browser->visit('/')
+    //                 ->assertSee('Behavior Questionaire');
+    //     });
+    // }
+
+    /**
+     * Test user registration
+     *
+     * @return void
+     */
+    public function testUserRegistration()
     {
-        $this->browse(function (Browser $browser) {
-            $browser->visit('/')
-                    ->assertSee('Behavior Questionaire');
+        $this->browse(function ($browser) {
+            $browser->visit('/register')
+                    ->type('first_name', 'John')
+                    ->type('last_name', 'Doe')
+                    ->type('email', 'jdoe@example.com')
+                    ->type('password', 'secret')
+                    ->type('password_confirmation', 'secret')
+                    ->press('Register')
+                    ->assertPathIs('/questionaire');
         });
     }
 
@@ -31,7 +50,7 @@ class UserTest extends DuskTestCase
      */
     public function testUserLoginSuccessfully()
     {
-        $user = factory(User::class)->create(['email' => 'taylor@laravel.com']);
+        $user = User::first();
 
         $this->browse(function ($browser) use ($user) {
             $browser->visit('/login')
@@ -42,25 +61,40 @@ class UserTest extends DuskTestCase
         });
     }
 
-    /**
-     * Test user registration
-     *
-     * @return void
-     */
-    public function testUserRegistration()
-    {
-        $user = factory(User::class)->create();
+    // /**
+    //  * Test user logging out
+    //  *
+    //  * @return void
+    //  */
+    // public function testUserLogout()
+    // {
+    //     $user = factory(User::class)->create();
 
-        $this->browse(function ($browser) use ($user) {
-            $browser->visit('/register')
-                    ->type('first_name', $user->first_name)
-                    ->type('last_name', $user->last_name)
-                    ->type('email', $user->email)
-                    ->type('password', 'secret')
-                    ->type('password_confirmation', 'secret')
-                    ->press('Register')
-                    ->assertPathIs('/questionaire');
-        });
-    }
+    //     $this->browse(function ($browser) use ($user) {
+    //         $browser->loginAs($user)
+    //                 ->visit('/logout')
+    //                 ->logout()
+    //                 ->assertPathIs('/');
+    //     });
+    // }
+
+    // /**
+    //  * Test user answering the question
+    //  *
+    //  * @return void
+    //  */
+    // public function testUserAnsweringQuestions()
+    // {
+    //     $user = factory(User::class)->create();
+
+    //     $this->browse(function ($browser) use ($user) {
+    //         $browser->loginAs($user)
+    //                 ->radio('question_1', '1')
+    //                 ->radio('question_2', '4')
+    //                 ->radio('question_3', '7')
+    //                 ->press('Submit')
+    //                 ->assertSee('Answers');
+    //     });
+    // }
 
 }
