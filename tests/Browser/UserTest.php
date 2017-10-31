@@ -5,7 +5,11 @@ namespace Tests\Browser;
 use Tests\DuskTestCase;
 use Laravel\Dusk\Browser;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Database\Seeds\DatabaseSeeder;
+
 use App\User;
+use App\Question;
+use App\Choice;
 
 class UserTest extends DuskTestCase
 {
@@ -16,13 +20,13 @@ class UserTest extends DuskTestCase
      *
      * @return void
      */
-    // public function testHomePage()
-    // {
-    //     $this->browse(function (Browser $browser) {
-    //         $browser->visit('/')
-    //                 ->assertSee('Behavior Questionaire');
-    //     });
-    // }
+    public function testHomePage()
+    {
+        $this->browse(function (Browser $browser) {
+            $browser->visit('/')
+                    ->assertSee('Behavior Questionaire');
+        });
+    }
 
     /**
      * Test user registration
@@ -44,57 +48,69 @@ class UserTest extends DuskTestCase
     }
 
     /**
+     * Test user logging out
+     *
+     * @return void
+    */ 
+    public function testUserLogout()
+    {
+        $user = factory(User::class)->create();
+
+        $this->browse(function ($browser) use ($user) {
+            $browser->loginAs($user)
+                    ->visit('/logout')
+                    ->logout()
+                    ->assertPathIs('/');
+        });
+    }
+
+    /**
      * Test user login successfully
      *
      * @return void
      */
     public function testUserLoginSuccessfully()
     {
-        $user = User::first();
+        $user = factory(User::class)->create();
 
         $this->browse(function ($browser) use ($user) {
             $browser->visit('/login')
                     ->type('email', $user->email)
                     ->type('password', 'secret')
                     ->press('Login')
-                    ->assertPathIs('/questionaire');
+                    ->assertPathIs('/questionaire')
+                    ->logout();
         });
     }
 
-    // /**
-    //  * Test user logging out
-    //  *
-    //  * @return void
-    //  */
-    // public function testUserLogout()
-    // {
-    //     $user = factory(User::class)->create();
+    /**
+     * Test user answering the question
+     *
+     * @return void
+     */
+    public function testUserLoginAndAnswerQuestions()
+    {
+        $user = factory(User::class)->create();
+        $question = factory(Question::class, 3)->create()->each(function($q){
+            factory(Choice::class, 3)->create(['question_id' => $q->id]);
+        });
 
-    //     $this->browse(function ($browser) use ($user) {
-    //         $browser->loginAs($user)
-    //                 ->visit('/logout')
-    //                 ->logout()
-    //                 ->assertPathIs('/');
-    //     });
-    // }
+        $this->browse(function ($browser) use ($user) {
 
-    // /**
-    //  * Test user answering the question
-    //  *
-    //  * @return void
-    //  */
-    // public function testUserAnsweringQuestions()
-    // {
-    //     $user = factory(User::class)->create();
+            $firstChoice = Question::find(1)->choices()->first();
+            $secondChoice = Question::find(2)->choices()->first();
+            $thirdChoice = Question::find(3)->choices()->first();
 
-    //     $this->browse(function ($browser) use ($user) {
-    //         $browser->loginAs($user)
-    //                 ->radio('question_1', '1')
-    //                 ->radio('question_2', '4')
-    //                 ->radio('question_3', '7')
-    //                 ->press('Submit')
-    //                 ->assertSee('Answers');
-    //     });
-    // }
+            $browser->visit('/login')
+                    ->type('email', $user->email)
+                    ->type('password', 'secret')
+                    ->press('Login')
+                    ->radio('question_1', $firstChoice->id)
+                    ->radio('question_2', $secondChoice->id)
+                    ->radio('question_3', $thirdChoice->id)
+                    ->press('Submit')
+                    ->assertSee('Answers');
+        });
+    }
 
 }
