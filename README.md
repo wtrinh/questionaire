@@ -1,0 +1,1 @@
+This Laravel app is a just a demo for a user to register then login to answer a few questions about what he/she eats for breakfast, lunch and dinner. The app can be also be browser tested with Laravel Dusk.
